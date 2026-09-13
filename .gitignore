@@ -1,0 +1,35 @@
+# Dependency directories
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Environment files - IMPORTANT: Do not commit secrets
+.env
+.env*.local
+backend/.env
+frontend/.env
+
+# Production build output
+dist/
+dist-ssr/
+frontend/dist/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Temporary files
+scratch/
