@@ -3,19 +3,32 @@ const dns = require('dns');
 
 const connectDB = async () => {
   try {
-    // Configure Google DNS servers to ensure Atlas queries resolve on Windows systems
-    try {
-      dns.setServers(['8.8.8.8', '8.8.4.4']);
-      console.log('DNS configured to use Google DNS fallback');
-    } catch (dnsErr) {
-      console.warn('DNS server fallback configuration failed:', dnsErr.message);
+    // Only apply Google DNS override on Windows machines (where local DNS can fail SRV queries)
+    // Cloud environments like Render (Linux) must use their container's default DNS
+    if (process.platform === 'win32') {
+      try {
+        dns.setServers(['8.8.8.8', '8.8.4.4']);
+        console.log('Windows: DNS configured to use Google DNS fallback');
+      } catch (dnsErr) {
+        console.warn('DNS server fallback configuration failed:', dnsErr.message);
+      }
     }
 
-    const conn = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    const rawUri = process.env.MONGO_URI;
+    if (!rawUri) {
+      console.error('ERROR: MONGO_URI is not defined in environment variables!');
+      return;
+    }
+
+    // Clean URI in case quotes were accidentally included in cloud dashboard
+    const uri = rawUri.trim().replace(/^["']|["']$/g, '');
+
+    const conn = await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 15000,
+    });
+    console.log(`MongoDB Connected successfully: ${conn.connection.host}`);
   } catch (error) {
     console.error(`Database Connection Error: ${error.message}`);
-    console.warn(`Tip: If this is an IP whitelist issue, add your IP (or 0.0.0.0/0) in the MongoDB Atlas Network Access dashboard.`);
   }
 };
 
